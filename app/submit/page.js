@@ -30,11 +30,15 @@ export default function SubmitPage() {
       if (!unlocked) { const res = await unlock(passphrase); key = res.secretKey; activeDid = res.did; }
       const text = `[${contentType} · ${language}] I published a Technocore contribution: ${url}. ${summary}`;
       const response = await saySigned({ secretKey: key, did: activeDid, room: "technocore", text });
+      const p = response.posted || {};
       const entry = {
-        kind: "submission", room: response.room || "technocore", seq: response.posted?.seq,
-        did: response.posted?.from || activeDid, nonce: response.posted?.nonce,
-        ts: response.posted?.ts || new Date().toISOString(), text: response.posted?.text || text,
-        url, contentType, language, createdAt: Date.now(),
+        kind: "submission", room: response.room || "technocore",
+        seq: p.seq ?? null,
+        did: p.from || activeDid,
+        nonce: p.nonce ?? response.fallbackNonce,
+        ts: p.ts || new Date().toISOString(),
+        text: p.text || text,
+        url, contentType, language, raw: response.raw, createdAt: Date.now(),
       };
       appendHistory(entry);
       setResult(entry); setUrl(""); setSummary("");

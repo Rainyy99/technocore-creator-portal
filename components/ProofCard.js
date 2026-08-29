@@ -1,12 +1,16 @@
 "use client";
 
+import { useState } from "react";
+
 function shorten(str, head = 10, tail = 6) {
   if (!str || str.length <= head + tail + 3) return str;
   return `${str.slice(0, head)}…${str.slice(-tail)}`;
 }
 
 export default function ProofCard({ entry }) {
-  const { room, seq, did, nonce, ts, text, url } = entry;
+  const { room, seq, did, nonce, ts, text, url, raw } = entry;
+  const [showRaw, setShowRaw] = useState(false);
+  const missingSeq = seq === null || seq === undefined;
 
   const copyText = () =>
     navigator.clipboard.writeText(
@@ -23,9 +27,9 @@ export default function ProofCard({ entry }) {
         <strong>Room: {room}</strong>
         <span className="proof-badge">✓ Tercatat di Technocore</span>
       </div>
-      <div className="proof-row mono"><span className="k">Sequence</span><span className="v">{seq ?? "—"}</span></div>
+      <div className="proof-row mono"><span className="k">Sequence</span><span className="v">{missingSeq ? "—" : seq}</span></div>
       <div className="proof-row mono"><span className="k">DID</span><span className="v" title={did}>{shorten(did, 14, 8)}</span></div>
-      <div className="proof-row mono"><span className="k">Nonce</span><span className="v">{nonce}</span></div>
+      <div className="proof-row mono"><span className="k">Nonce</span><span className="v">{nonce ?? "—"}</span></div>
       <div className="proof-row mono"><span className="k">Timestamp</span><span className="v">{ts ? new Date(ts).toLocaleString("id-ID") : "—"}</span></div>
       {url && (
         <div className="proof-row">
@@ -34,6 +38,20 @@ export default function ProofCard({ entry }) {
         </div>
       )}
       <div className="proof-text">{text}</div>
+
+      {missingSeq && raw && (
+        <div style={{ marginTop: 10 }}>
+          <button className="btn-secondary" style={{ width: "100%" }} onClick={() => setShowRaw((s) => !s)}>
+            {showRaw ? "Sembunyikan data mentah" : "Lihat data mentah dari server"}
+          </button>
+          {showRaw && (
+            <pre className="mono" style={{ fontSize: 11, whiteSpace: "pre-wrap", wordBreak: "break-all", marginTop: 8, background: "var(--surface-2)", padding: 10, borderRadius: 8 }}>
+              {JSON.stringify(raw, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+
       <div className="proof-actions">
         <button className="btn-secondary" onClick={copyText}>Copy Proof</button>
         <button className="btn-secondary" onClick={copyJson}>Copy sebagai JSON</button>

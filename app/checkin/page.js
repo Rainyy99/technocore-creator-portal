@@ -44,10 +44,15 @@ export default function CheckinPage() {
       let key = secretKey; let activeDid = did;
       if (!unlocked) { const res = await unlock(passphrase); key = res.secretKey; activeDid = res.did; }
       const result = await saySigned({ secretKey: key, did: activeDid, room: "lobby", text: CHECKIN_TEXT });
+      const p = result.posted || {};
       const entry = {
-        kind: "checkin", room: result.room || "lobby", seq: result.posted?.seq,
-        did: result.posted?.from || activeDid, nonce: result.posted?.nonce,
-        ts: result.posted?.ts || new Date().toISOString(), text: result.posted?.text || CHECKIN_TEXT,
+        kind: "checkin", room: result.room || "lobby",
+        seq: p.seq ?? null,
+        did: p.from || activeDid,
+        nonce: p.nonce ?? result.fallbackNonce,
+        ts: p.ts || new Date().toISOString(),
+        text: p.text || CHECKIN_TEXT,
+        raw: result.raw,
         createdAt: Date.now(),
       };
       const newHistory = appendHistory(entry);

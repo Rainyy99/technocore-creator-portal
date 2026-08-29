@@ -9,14 +9,15 @@ export async function GET(request) {
     });
   }
 
-  const upstream = `https://technocore.chat${path}`;
+  const separator = path.includes("?") ? "&" : "?";
+  const upstream = `https://technocore.chat${path}${separator}format=json`;
 
   try {
     const res = await fetch(upstream, { method: "GET" });
     const text = await res.text();
     return new Response(text, {
       status: res.status,
-      headers: { "content-type": res.headers.get("content-type") || "text/plain" },
+      headers: { "content-type": res.headers.get("content-type") || "application/json" },
     });
   } catch (err) {
     return new Response(JSON.stringify({ error: "Upstream request failed" }), {
